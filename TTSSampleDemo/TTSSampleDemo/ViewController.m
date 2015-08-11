@@ -13,23 +13,32 @@
 #import <OpenEars/OEAcousticModel.h>
 #import <Slt/Slt.h>
 
+
 #define kFileName @"language-model-files"
 #define kAcousticModel @"AcousticModelEnglish"
 
 
 @interface ViewController ()
 
+#pragma mark - Language Model Generator
 @property (nonatomic, strong) OELanguageModelGenerator *languageModelGenerator;
 @property (nonatomic, strong) NSArray *recognizedWords;
 @property (nonatomic, strong) NSString *languageModelPath;
 @property (nonatomic, strong) NSString *dictionaryPath;
+
+#pragma mark - Text to Speech
 @property (nonatomic, strong) OEFliteController *fliteController;
 @property (nonatomic, strong) Slt *slt;
+
+#pragma mark - Speech to text Observer for given words array.
 @property (nonatomic, strong) OEEventsObserver *openEarsEventsObserver;
+
+#pragma mark - Mic button for states
 @property (nonatomic, strong) UIButton *micControlButton;
 
 @end
 
+#pragma mark - Class Implementation
 
 @implementation ViewController
 
@@ -47,14 +56,11 @@
     [[_micControlButton layer] setCornerRadius:7.5];
     [_micControlButton setBackgroundColor:[UIColor greenColor]];
     [_micControlButton setTitle:@"Listening..." forState:UIControlStateNormal];
-    [_micControlButton setTintColor:[UIColor whiteColor]];
     [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_micControlButton];
     
-    
-    
-    
     _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
+    // Array of Words and Phares taht want to recognize by App
     _recognizedWords = @[@"OPEN DOOR"];
     
     NSError *error = [_languageModelGenerator generateLanguageModelFromArray:_recognizedWords withFilesNamed:kFileName forAcousticModelAtPath:[OEAcousticModel pathToModel:kAcousticModel]];
@@ -99,7 +105,7 @@
 
 - (void)pocketsphinxDidReceiveHypothesis:(NSString *)hypothesis recognitionScore:(NSString *)recognitionScore utteranceID:(NSString *)utteranceID {
     NSLog(@"The received hypothesis is %@ with a score of %@ and an ID of %@", hypothesis, recognitionScore, utteranceID);
-    [_fliteController say:hypothesis withVoice:_slt];
+    //[_fliteController say:hypothesis withVoice:_slt];
 }
 
 //- (void)pocketsphinxDidStartListening {
