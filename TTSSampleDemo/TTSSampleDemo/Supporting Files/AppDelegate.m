@@ -23,6 +23,7 @@
     
     ViewController *viewController = [[ViewController alloc] init];
     [_window setRootViewController:viewController];
+    [_window setBackgroundColor:[UIColor whiteColor]];
     [_window makeKeyAndVisible];
     
     return YES;

@@ -7,9 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <OpenEars/OEEventsObserver.h>
 
-@interface ViewController : UIViewController <OEEventsObserverDelegate>
+@interface ViewController : UIViewController
 
 @end
 

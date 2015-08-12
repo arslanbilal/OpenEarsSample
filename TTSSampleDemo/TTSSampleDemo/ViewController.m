@@ -11,6 +11,7 @@
 #import <OpenEars/OEPocketsphinxController.h>
 #import <OpenEars/OEFliteController.h>
 #import <OpenEars/OEAcousticModel.h>
+#import <OpenEars/OEEventsObserver.h>
 #import <Slt/Slt.h>
 
 
@@ -18,23 +19,19 @@
 #define kAcousticModel @"AcousticModelEnglish"
 
 
-@interface ViewController ()
+@interface ViewController () <OEEventsObserverDelegate>
 
-#pragma mark - Language Model Generator
 @property (nonatomic, strong) OELanguageModelGenerator *languageModelGenerator;
-@property (nonatomic, strong) NSArray *recognizedWords;
+@property (nonatomic, strong) NSDictionary *recognizedCommands;
+@property (nonatomic, strong) NSArray *recognizedCommandsArray;
 @property (nonatomic, strong) NSString *languageModelPath;
 @property (nonatomic, strong) NSString *dictionaryPath;
-
-#pragma mark - Text to Speech
 @property (nonatomic, strong) OEFliteController *fliteController;
 @property (nonatomic, strong) Slt *slt;
-
-#pragma mark - Speech to text Observer for given words array.
 @property (nonatomic, strong) OEEventsObserver *openEarsEventsObserver;
-
-#pragma mark - Mic button for states
 @property (nonatomic, strong) UIButton *micControlButton;
+@property (nonatomic, strong) UILabel *recognizedText;
+@property (nonatomic, assign) CGFloat width;
 
 @end
 
@@ -50,40 +47,86 @@
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
     
-    CGFloat width = [[UIScreen mainScreen] bounds].size.width;
+    _width = [[UIScreen mainScreen] bounds].size.width;
     
-    _micControlButton = [[UIButton alloc] initWithFrame:CGRectMake(50, 50, width - 100, 50)];
+    _micControlButton = [[UIButton alloc] initWithFrame:CGRectMake(50, 50, _width - 100, 50)];
     [[_micControlButton layer] setCornerRadius:7.5];
+    [_micControlButton setTitle:@"Listening" forState:UIControlStateNormal];
     [_micControlButton setBackgroundColor:[UIColor greenColor]];
-    [_micControlButton setTitle:@"Listening..." forState:UIControlStateNormal];
     [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_micControlButton];
     
-    _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
-    // Array of Words and Phares taht want to recognize by App
-    _recognizedWords = @[@"OPEN DOOR"];
+    _recognizedText = [[UILabel alloc] initWithFrame:CGRectMake(25, 125, _width - 50, 100)];
+    [_recognizedText setNumberOfLines:0];
+    [_recognizedText setText:@"-"];
+    [self.view addSubview:_recognizedText];
     
-    NSError *error = [_languageModelGenerator generateLanguageModelFromArray:_recognizedWords withFilesNamed:kFileName forAcousticModelAtPath:[OEAcousticModel pathToModel:kAcousticModel]];
+    _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
+
+    // Array(Dictionary) of Words and Phares taht want to recognize by App
+    
+    /*
+     @{
+     ThisWillBeSaidOnce : @[
+     @{ OneOfTheseCanBeSaidOnce : @[@"HELLO COMPUTER", @"GREETINGS ROBOT"]},
+     @{ OneOfTheseWillBeSaidOnce : @[@"DO THE FOLLOWING", @"INSTRUCTION"]},
+     @{ OneOfTheseWillBeSaidOnce : @[@"GO", @"MOVE"]},
+     @{ThisWillBeSaidWithOptionalRepetitions : @[
+     @{ OneOfTheseWillBeSaidOnce : @[@"10", @"20",@"30"]},
+     @{ OneOfTheseWillBeSaidOnce : @[@"LEFT", @"RIGHT", @"FORWARD"]}
+     ]},
+     @{ OneOfTheseWillBeSaidOnce : @[@"EXECUTE", @"DO IT"]},
+     @{ ThisCanBeSaidOnce : @[@"THANK YOU"]}
+     ]
+     };
+     */
+    
+    _recognizedCommands = @{
+                             ThisWillBeSaidOnce : @[
+                                     //@{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS", @"HEY"]},
+                                     @{ OneOfTheseWillBeSaidOnce : @[@"ONE", @"TWO"]},
+                                     @{ OneOfTheseWillBeSaidOnce : @[@"THREE", @"FOUR"]},
+                                     @{ ThisCanBeSaidOnce : @[@"THANK YOU"]}
+                                     ],
+                             OneOfTheseWillBeSaidOnce : @[@"TEN", @"ELEVEN", @"TWELVE", @"HUNDRED"],
+                             OneOfTheseCanBeSaidOnce : @[@"TABLE", @"DESK", @"FLOOR"]
+                             };
+    
+    _recognizedCommandsArray = @[@"DEMO APP"];
+    
+    
+//    NSError *error = [_languageModelGenerator generateLanguageModelFromArray:_recognizedCommandsArray
+//                                                              withFilesNamed:kFileName
+//                                                      forAcousticModelAtPath:[OEAcousticModel
+//                                                                              pathToModel:kAcousticModel]];
+    
+    NSError *error = [_languageModelGenerator generateGrammarFromDictionary:_recognizedCommands
+                                                             withFilesNamed:kFileName
+                                                     forAcousticModelAtPath:[OEAcousticModel
+                                                                pathToModel:kAcousticModel]];
     
     if (error == nil) {
         _languageModelPath = [_languageModelGenerator pathToSuccessfullyGeneratedLanguageModelWithRequestedName:kFileName];
         _dictionaryPath = [_languageModelGenerator pathToSuccessfullyGeneratedDictionaryWithRequestedName:kFileName];
         
         [[OEPocketsphinxController sharedInstance] setActive:YES error:nil];
-        [[OEPocketsphinxController sharedInstance] startListeningWithLanguageModelAtPath:_languageModelPath dictionaryAtPath:_dictionaryPath acousticModelAtPath:[OEAcousticModel pathToModel:kAcousticModel] languageModelIsJSGF:NO];
+        [[OEPocketsphinxController sharedInstance] startListeningWithLanguageModelAtPath:_languageModelPath
+                                                                        dictionaryAtPath:_dictionaryPath
+                                                                     acousticModelAtPath:[OEAcousticModel
+                                                                                          pathToModel:kAcousticModel]
+                                                                     languageModelIsJSGF:NO];
         
+
     } else {
         NSLog(@"Error: %@", [error localizedDescription]);
     }
     
-    // calling speech
-    _fliteController = [[OEFliteController alloc] init];
-    _slt = [[Slt alloc] init];
 }
 
 #pragma mark - Button Actions
 
 - (void)didTapMicButton:(UIButton *)button {
+    
     UIColor *buttonBackgroundColor = nil;
     NSString *buttonTitle = nil;
     
@@ -105,15 +148,16 @@
 
 - (void)pocketsphinxDidReceiveHypothesis:(NSString *)hypothesis recognitionScore:(NSString *)recognitionScore utteranceID:(NSString *)utteranceID {
     NSLog(@"The received hypothesis is %@ with a score of %@ and an ID of %@", hypothesis, recognitionScore, utteranceID);
-    //[_fliteController say:hypothesis withVoice:_slt];
+    [_recognizedText setText:hypothesis];
 }
 
-//- (void)pocketsphinxDidStartListening {
-//    NSLog(@"Pocketsphinx is now listening.");
-//}
+- (void)pocketsphinxDidStartListening {
+    NSLog(@"Pocketsphinx is now listening.");
+}
 
 - (void)pocketsphinxDidDetectSpeech {
     NSLog(@"Pocketsphinx has detected speech.");
+    //[_recognizedText setText:@"-"];
 }
 
 //- (void)pocketsphinxDidDetectFinishedSpeech {
@@ -144,4 +188,13 @@
 //    NSLog(@"Listening teardown wasn't successful and returned the failure reason: %@", reasonForFailure);
 //}
 
+- (void)pocketsphinxFailedNoMicPermissions {
+
+}
+
+- (void)micPermissionCheckCompleted:(BOOL)result {
+    if (result) { } else { }
+}
+
 @end
+;
