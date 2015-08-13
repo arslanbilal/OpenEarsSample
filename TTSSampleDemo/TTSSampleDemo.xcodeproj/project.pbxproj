@@ -196,6 +196,11 @@
 					77C820D21B79EDAA006686C8 = {
 						CreatedOnToolsVersion = 6.4;
 						DevelopmentTeam = 6NH7XJ2CAT;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
 					};
 					77C820EB1B79EDAA006686C8 = {
 						CreatedOnToolsVersion = 6.4;

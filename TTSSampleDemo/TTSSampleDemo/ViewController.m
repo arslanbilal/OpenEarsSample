@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import <AVFoundation/AVAudioSession.h>
 #import <OpenEars/OELanguageModelGenerator.h>
 #import <OpenEars/OEPocketsphinxController.h>
 #import <OpenEars/OEFliteController.h>
@@ -31,7 +32,6 @@
 @property (nonatomic, strong) OEEventsObserver *openEarsEventsObserver;
 @property (nonatomic, strong) UIButton *micControlButton;
 @property (nonatomic, strong) UILabel *recognizedText;
-@property (nonatomic, assign) CGFloat width;
 
 @end
 
@@ -47,80 +47,68 @@
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
     
-    _width = [[UIScreen mainScreen] bounds].size.width;
+    CGFloat width = [[UIScreen mainScreen] bounds].size.width;
     
-    _micControlButton = [[UIButton alloc] initWithFrame:CGRectMake(50, 50, _width - 100, 50)];
+    _micControlButton = [[UIButton alloc] initWithFrame:CGRectMake(50, 50, width - 100, 50)];
     [[_micControlButton layer] setCornerRadius:7.5];
     [_micControlButton setTitle:@"Listening" forState:UIControlStateNormal];
     [_micControlButton setBackgroundColor:[UIColor greenColor]];
     [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_micControlButton];
+    [_micControlButton setHidden:YES];
     
-    _recognizedText = [[UILabel alloc] initWithFrame:CGRectMake(25, 125, _width - 50, 100)];
+    _recognizedText = [[UILabel alloc] initWithFrame:CGRectMake(25, 125, width - 50, 100)];
     [_recognizedText setNumberOfLines:0];
     [_recognizedText setText:@"-"];
     [self.view addSubview:_recognizedText];
     
     _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
 
-    // Array(Dictionary) of Words and Phares taht want to recognize by App
+    // Dictionary of commands want to recognize by App
+    _recognizedCommands =      @{
+                                 ThisWillBeSaidOnce : @[
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE"] },
+                                         @{ ThisCanBeSaidOnce : @[@"THANK YOU"]}
+                                         ]
+                                 };
     
-    /*
-     @{
-     ThisWillBeSaidOnce : @[
-     @{ OneOfTheseCanBeSaidOnce : @[@"HELLO COMPUTER", @"GREETINGS ROBOT"]},
-     @{ OneOfTheseWillBeSaidOnce : @[@"DO THE FOLLOWING", @"INSTRUCTION"]},
-     @{ OneOfTheseWillBeSaidOnce : @[@"GO", @"MOVE"]},
-     @{ThisWillBeSaidWithOptionalRepetitions : @[
-     @{ OneOfTheseWillBeSaidOnce : @[@"10", @"20",@"30"]},
-     @{ OneOfTheseWillBeSaidOnce : @[@"LEFT", @"RIGHT", @"FORWARD"]}
-     ]},
-     @{ OneOfTheseWillBeSaidOnce : @[@"EXECUTE", @"DO IT"]},
-     @{ ThisCanBeSaidOnce : @[@"THANK YOU"]}
-     ]
-     };
-     */
-    
-    _recognizedCommands = @{
-                             ThisWillBeSaidOnce : @[
-                                     //@{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS", @"HEY"]},
-                                     @{ OneOfTheseWillBeSaidOnce : @[@"ONE", @"TWO"]},
-                                     @{ OneOfTheseWillBeSaidOnce : @[@"THREE", @"FOUR"]},
-                                     @{ ThisCanBeSaidOnce : @[@"THANK YOU"]}
-                                     ],
-                             OneOfTheseWillBeSaidOnce : @[@"TEN", @"ELEVEN", @"TWELVE", @"HUNDRED"],
-                             OneOfTheseCanBeSaidOnce : @[@"TABLE", @"DESK", @"FLOOR"]
-                             };
-    
-    _recognizedCommandsArray = @[@"DEMO APP"];
-    
-    
-//    NSError *error = [_languageModelGenerator generateLanguageModelFromArray:_recognizedCommandsArray
-//                                                              withFilesNamed:kFileName
-//                                                      forAcousticModelAtPath:[OEAcousticModel
-//                                                                              pathToModel:kAcousticModel]];
-    
-    NSError *error = [_languageModelGenerator generateGrammarFromDictionary:_recognizedCommands
-                                                             withFilesNamed:kFileName
-                                                     forAcousticModelAtPath:[OEAcousticModel
-                                                                pathToModel:kAcousticModel]];
-    
-    if (error == nil) {
-        _languageModelPath = [_languageModelGenerator pathToSuccessfullyGeneratedLanguageModelWithRequestedName:kFileName];
-        _dictionaryPath = [_languageModelGenerator pathToSuccessfullyGeneratedDictionaryWithRequestedName:kFileName];
+    [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
         
-        [[OEPocketsphinxController sharedInstance] setActive:YES error:nil];
-        [[OEPocketsphinxController sharedInstance] startListeningWithLanguageModelAtPath:_languageModelPath
-                                                                        dictionaryAtPath:_dictionaryPath
-                                                                     acousticModelAtPath:[OEAcousticModel
-                                                                                          pathToModel:kAcousticModel]
-                                                                     languageModelIsJSGF:NO];
+        if (granted == true) {
+            NSError *error = [_languageModelGenerator generateGrammarFromDictionary:_recognizedCommands
+                                                                     withFilesNamed:kFileName
+                                                             forAcousticModelAtPath:[OEAcousticModel
+                                                                                     pathToModel:kAcousticModel]];
+            
+            if (error == nil) {
+                _languageModelPath  = [_languageModelGenerator pathToSuccessfullyGeneratedGrammarWithRequestedName:kFileName];
+                _dictionaryPath = [_languageModelGenerator pathToSuccessfullyGeneratedDictionaryWithRequestedName:kFileName];
+                
+                [[OEPocketsphinxController sharedInstance] setActive:YES error:nil];
+                [[OEPocketsphinxController sharedInstance] startListeningWithLanguageModelAtPath:_languageModelPath
+                                                                                dictionaryAtPath:_dictionaryPath
+                                                                             acousticModelAtPath:[OEAcousticModel
+                                                                                                  pathToModel:kAcousticModel]
+                                                                             languageModelIsJSGF:YES];
+                [_micControlButton setHidden:NO];
+                [_recognizedText setHidden:NO];
+            } else {
+                NSLog(@"Error: %@", [error localizedDescription]);
+                [_micControlButton setHidden:YES];
+                [_recognizedText setHidden:NO];
+                [_recognizedText setText:[NSString stringWithFormat:@"There was an error, here is the description: %@", [error localizedDescription]]];
+            }
+        } else {
+            [_micControlButton setHidden:YES];
+            [_recognizedText setHidden:YES];
+            
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"IMPORTANT!" message:@"Please open the microphone permisson in the settings." delegate:nil cancelButtonTitle:@"OKAY" otherButtonTitles:nil, nil];
+            [alertView show];
+        }
         
-
-    } else {
-        NSLog(@"Error: %@", [error localizedDescription]);
-    }
-    
+    }];
 }
 
 #pragma mark - Button Actions
@@ -151,22 +139,25 @@
     [_recognizedText setText:hypothesis];
 }
 
+- (void)pocketsphinxDidReceiveNBestHypothesisArray:(NSArray *)hypothesisArray {
+    NSLog(@"The received hypothesis array is: %@", hypothesisArray);
+}
+
 - (void)pocketsphinxDidStartListening {
     NSLog(@"Pocketsphinx is now listening.");
 }
 
 - (void)pocketsphinxDidDetectSpeech {
     NSLog(@"Pocketsphinx has detected speech.");
-    //[_recognizedText setText:@"-"];
 }
 
-//- (void)pocketsphinxDidDetectFinishedSpeech {
-//    NSLog(@"Pocketsphinx has detected a period of silence, concluding an utterance.");
-//}
+- (void)pocketsphinxDidDetectFinishedSpeech {
+    NSLog(@"Pocketsphinx has detected a period of silence, concluding an utterance.");
+}
 
-//- (void)pocketsphinxDidStopListening {
-//    NSLog(@"Pocketsphinx has stopped listening.");
-//}
+- (void)pocketsphinxDidStopListening {
+    NSLog(@"Pocketsphinx has stopped listening.");
+}
 
 - (void)pocketsphinxDidSuspendRecognition {
     NSLog(@"Pocketsphinx has suspended recognition.");
@@ -176,25 +167,19 @@
     NSLog(@"Pocketsphinx has resumed recognition.");
 }
 
-//- (void)pocketsphinxDidChangeLanguageModelToFile:(NSString *)newLanguageModelPathAsString andDictionary:(NSString *)newDictionaryPathAsString {
-//    NSLog(@"Pocketsphinx is now using the following language model: \n%@ and the following dictionary: %@",newLanguageModelPathAsString,newDictionaryPathAsString);
-//}
+- (void)pocketSphinxContinuousSetupDidFailWithReason:(NSString *)reasonForFailure {
+    NSLog(@"Listening setup wasn't successful and returned the failure reason: %@", reasonForFailure);
+}
 
-//- (void)pocketSphinxContinuousSetupDidFailWithReason:(NSString *)reasonForFailure {
-//    NSLog(@"Listening setup wasn't successful and returned the failure reason: %@", reasonForFailure);
-//}
-
-//- (void)pocketSphinxContinuousTeardownDidFailWithReason:(NSString *)reasonForFailure {
-//    NSLog(@"Listening teardown wasn't successful and returned the failure reason: %@", reasonForFailure);
-//}
-
-- (void)pocketsphinxFailedNoMicPermissions {
-
+- (void)pocketSphinxContinuousTeardownDidFailWithReason:(NSString *)reasonForFailure {
+    NSLog(@"Listening teardown wasn't successful and returned the failure reason: %@", reasonForFailure);
 }
 
 - (void)micPermissionCheckCompleted:(BOOL)result {
-    if (result) { } else { }
+    if (result == true) {
+    
+    } else {
+    }
 }
 
 @end
-;
