@@ -7,7 +7,6 @@
 //
 
 #import "ViewController.h"
-#import <AVFoundation/AVAudioSession.h>
 #import <OpenEars/OELanguageModelGenerator.h>
 #import <OpenEars/OEPocketsphinxController.h>
 #import <OpenEars/OEFliteController.h>
