@@ -7,6 +7,7 @@
 //
 
 #import "ViewController.h"
+#import "PureLayout.h"
 #import <OpenEars/OELanguageModelGenerator.h>
 #import <OpenEars/OEPocketsphinxController.h>
 #import <OpenEars/OEFliteController.h>
@@ -22,15 +23,17 @@
 @interface ViewController () <OEEventsObserverDelegate>
 
 @property (nonatomic, strong) OELanguageModelGenerator *languageModelGenerator;
-@property (nonatomic, strong) NSDictionary *recognizedCommands;
-@property (nonatomic, strong) NSArray *recognizedCommandsArray;
-@property (nonatomic, strong) NSString *languageModelPath;
-@property (nonatomic, strong) NSString *dictionaryPath;
 @property (nonatomic, strong) OEFliteController *fliteController;
 @property (nonatomic, strong) Slt *slt;
 @property (nonatomic, strong) OEEventsObserver *openEarsEventsObserver;
+
+@property (nonatomic, strong) NSDictionary *recognizedCommands;
+@property (nonatomic, strong) NSString *languageModelPath;
+@property (nonatomic, strong) NSString *dictionaryPath;
+
 @property (nonatomic, strong) UIButton *micControlButton;
 @property (nonatomic, strong) UILabel *recognizedText;
+@property (nonatomic, strong) UILabel *recognizableText;
 
 @end
 
@@ -42,24 +45,48 @@
     [super viewDidLoad];
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
+    
+    _micControlButton = [[UIButton alloc] initForAutoLayout];
+    [_micControlButton setTitle:@"Listen" forState:UIControlStateNormal];
+    [_micControlButton setBackgroundColor:[UIColor redColor]];
+    [[_micControlButton layer] setCornerRadius:7.5];
+    [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_micControlButton];
+    
+    [_micControlButton autoSetDimension:ALDimensionHeight toSize:50];
+    [_micControlButton autoPinEdgesToSuperviewEdgesWithInsets:UIEdgeInsetsMake(30, 50, 50, 50) excludingEdge:ALEdgeBottom];
+    
+    
+    _recognizedText = [[UILabel alloc] initForAutoLayout];
+    [_recognizedText setNumberOfLines:0];
+    [_recognizedText setText:@"Your Speech will come here when the IRIS understand the correct commands.."];
+    [_recognizedText setTextAlignment:NSTextAlignmentCenter];
+    [self.view addSubview:_recognizedText];
+    
+    CGFloat minumunHeight = 25.0;
+    [_recognizedText autoSetDimension:ALDimensionHeight toSize:minumunHeight relation:NSLayoutRelationGreaterThanOrEqual];
+    [_recognizedText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
+    [_recognizedText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
+    [_recognizedText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_micControlButton withOffset:30.0];
+    
+    
+    _recognizableText = [[UILabel alloc] initForAutoLayout];
+    [_recognizableText setNumberOfLines:0];
+    [_recognizableText setText:@" 0) COMMANDS: \n 1) HELLO/HEY IRIS \n 2) TURN ON/OFF LIGHTS \n 3) FLOOR ONE/TWO/THREE \n 4) (THANK YOU)"];
+    [_recognizableText setTextAlignment:NSTextAlignmentLeft];
+    [self.view addSubview:_recognizableText];
+    
+    [_recognizableText autoSetDimension:ALDimensionHeight toSize:minumunHeight relation:NSLayoutRelationGreaterThanOrEqual];
+    [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
+    [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
+    [_recognizableText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_recognizedText withOffset:30.0];
+    
+    //[_scrollView setContentSize:_scrollContentView.frame.size];
+    
+    
     // OEEventsObserver is the class which keeps you continuously updated about the status of your listening session, among other things, via delegate callbacks
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
-    
-    CGFloat width = [[UIScreen mainScreen] bounds].size.width;
-    
-    _micControlButton = [[UIButton alloc] initWithFrame:CGRectMake(50, 50, width - 100, 50)];
-    [[_micControlButton layer] setCornerRadius:7.5];
-    [_micControlButton setTitle:@"Listening" forState:UIControlStateNormal];
-    [_micControlButton setBackgroundColor:[UIColor greenColor]];
-    [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:_micControlButton];
-    [_micControlButton setHidden:YES];
-    
-    _recognizedText = [[UILabel alloc] initWithFrame:CGRectMake(25, 125, width - 50, 100)];
-    [_recognizedText setNumberOfLines:0];
-    [_recognizedText setText:@"-"];
-    [self.view addSubview:_recognizedText];
     
     _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
 
@@ -91,17 +118,17 @@
                                                                              acousticModelAtPath:[OEAcousticModel
                                                                                                   pathToModel:kAcousticModel]
                                                                              languageModelIsJSGF:YES];
-                [_micControlButton setHidden:NO];
-                [_recognizedText setHidden:NO];
+                
+                [_micControlButton setTitle:@"Listening.." forState:UIControlStateNormal];
+                [_micControlButton setBackgroundColor:[UIColor greenColor]];
+                [_micControlButton setUserInteractionEnabled:YES];
             } else {
                 NSLog(@"Error: %@", [error localizedDescription]);
-                [_micControlButton setHidden:YES];
-                [_recognizedText setHidden:NO];
+                [_micControlButton setUserInteractionEnabled:NO];
                 [_recognizedText setText:[NSString stringWithFormat:@"There was an error, here is the description: %@", [error localizedDescription]]];
             }
         } else {
-            [_micControlButton setHidden:YES];
-            [_recognizedText setHidden:YES];
+            [_micControlButton setUserInteractionEnabled:NO];
             
             UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"IMPORTANT!" message:@"Please open the microphone permisson in the settings." delegate:nil cancelButtonTitle:@"OKAY" otherButtonTitles:nil, nil];
             [alertView show];

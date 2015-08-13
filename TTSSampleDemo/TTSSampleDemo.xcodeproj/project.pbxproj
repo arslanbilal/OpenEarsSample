@@ -19,6 +19,9 @@
 		77C821101B79F24D006686C8 /* AcousticModelSpanish.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 77C8210C1B79F24D006686C8 /* AcousticModelSpanish.bundle */; };
 		77C821111B79F24D006686C8 /* OpenEars.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77C8210D1B79F24D006686C8 /* OpenEars.framework */; };
 		77C821121B79F24D006686C8 /* Slt.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77C8210E1B79F24D006686C8 /* Slt.framework */; };
+		77E2A2691B7CBC2A004CC53B /* ALView+PureLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 77E2A2611B7CBC2A004CC53B /* ALView+PureLayout.m */; };
+		77E2A26A1B7CBC2A004CC53B /* NSArray+PureLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 77E2A2631B7CBC2A004CC53B /* NSArray+PureLayout.m */; };
+		77E2A26B1B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 77E2A2651B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +53,15 @@
 		77C8210C1B79F24D006686C8 /* AcousticModelSpanish.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = AcousticModelSpanish.bundle; path = Frameworks/AcousticModelSpanish.bundle; sourceTree = "<group>"; };
 		77C8210D1B79F24D006686C8 /* OpenEars.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenEars.framework; path = Frameworks/OpenEars.framework; sourceTree = "<group>"; };
 		77C8210E1B79F24D006686C8 /* Slt.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Slt.framework; path = Frameworks/Slt.framework; sourceTree = "<group>"; };
+		77E2A2601B7CBC2A004CC53B /* ALView+PureLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ALView+PureLayout.h"; path = "Dependencies/PureLayout/ALView+PureLayout.h"; sourceTree = "<group>"; };
+		77E2A2611B7CBC2A004CC53B /* ALView+PureLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "ALView+PureLayout.m"; path = "Dependencies/PureLayout/ALView+PureLayout.m"; sourceTree = "<group>"; };
+		77E2A2621B7CBC2A004CC53B /* NSArray+PureLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSArray+PureLayout.h"; path = "Dependencies/PureLayout/NSArray+PureLayout.h"; sourceTree = "<group>"; };
+		77E2A2631B7CBC2A004CC53B /* NSArray+PureLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSArray+PureLayout.m"; path = "Dependencies/PureLayout/NSArray+PureLayout.m"; sourceTree = "<group>"; };
+		77E2A2641B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSLayoutConstraint+PureLayout.h"; path = "Dependencies/PureLayout/NSLayoutConstraint+PureLayout.h"; sourceTree = "<group>"; };
+		77E2A2651B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSLayoutConstraint+PureLayout.m"; path = "Dependencies/PureLayout/NSLayoutConstraint+PureLayout.m"; sourceTree = "<group>"; };
+		77E2A2661B7CBC2A004CC53B /* PureLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PureLayout.h; path = Dependencies/PureLayout/PureLayout.h; sourceTree = "<group>"; };
+		77E2A2671B7CBC2A004CC53B /* PureLayout+Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "PureLayout+Internal.h"; path = "Dependencies/PureLayout/PureLayout+Internal.h"; sourceTree = "<group>"; };
+		77E2A2681B7CBC2A004CC53B /* PureLayoutDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PureLayoutDefines.h; path = Dependencies/PureLayout/PureLayoutDefines.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,6 +89,7 @@
 		77C820CA1B79EDAA006686C8 = {
 			isa = PBXGroup;
 			children = (
+				77E2A25E1B7CB8EF004CC53B /* Dependencies */,
 				77C821001B79EFD9006686C8 /* Frameworks */,
 				77C820D51B79EDAA006686C8 /* TTSSampleDemo */,
 				77C820EF1B79EDAA006686C8 /* TTSSampleDemoTests */,
@@ -144,6 +157,30 @@
 				77C820FC1B79EFCD006686C8 /* AVFoundation.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		77E2A25E1B7CB8EF004CC53B /* Dependencies */ = {
+			isa = PBXGroup;
+			children = (
+				77E2A25F1B7CBC0D004CC53B /* PureLayout */,
+			);
+			name = Dependencies;
+			sourceTree = "<group>";
+		};
+		77E2A25F1B7CBC0D004CC53B /* PureLayout */ = {
+			isa = PBXGroup;
+			children = (
+				77E2A2601B7CBC2A004CC53B /* ALView+PureLayout.h */,
+				77E2A2611B7CBC2A004CC53B /* ALView+PureLayout.m */,
+				77E2A2621B7CBC2A004CC53B /* NSArray+PureLayout.h */,
+				77E2A2631B7CBC2A004CC53B /* NSArray+PureLayout.m */,
+				77E2A2641B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.h */,
+				77E2A2651B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.m */,
+				77E2A2661B7CBC2A004CC53B /* PureLayout.h */,
+				77E2A2671B7CBC2A004CC53B /* PureLayout+Internal.h */,
+				77E2A2681B7CBC2A004CC53B /* PureLayoutDefines.h */,
+			);
+			name = PureLayout;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -256,6 +293,9 @@
 				77A879281B79FDED00C85D3B /* AppDelegate.m in Sources */,
 				77A8792A1B79FDED00C85D3B /* main.m in Sources */,
 				77C820DF1B79EDAA006686C8 /* ViewController.m in Sources */,
+				77E2A2691B7CBC2A004CC53B /* ALView+PureLayout.m in Sources */,
+				77E2A26A1B7CBC2A004CC53B /* NSArray+PureLayout.m in Sources */,
+				77E2A26B1B7CBC2A004CC53B /* NSLayoutConstraint+PureLayout.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
