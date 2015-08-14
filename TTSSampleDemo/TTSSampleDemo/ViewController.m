@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "PureLayout.h"
+#import "AFHTTPRequestOperationManager.h"
 #import <OpenEars/OELanguageModelGenerator.h>
 #import <OpenEars/OEPocketsphinxController.h>
 #import <OpenEars/OEFliteController.h>
@@ -26,6 +27,7 @@
 @property (nonatomic, strong) OEFliteController *fliteController;
 @property (nonatomic, strong) Slt *slt;
 @property (nonatomic, strong) OEEventsObserver *openEarsEventsObserver;
+@property (nonatomic, strong) AFHTTPRequestOperationManager *requestOperationManager;
 
 @property (nonatomic, strong) NSDictionary *recognizedCommands;
 @property (nonatomic, strong) NSString *languageModelPath;
@@ -46,6 +48,8 @@
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
     [self createUI];
+    
+    _requestOperationManager = [AFHTTPRequestOperationManager manager];
     
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
@@ -77,11 +81,17 @@
      ] };
      */
     
+    [_requestOperationManager GET:@"http://example.com/resources.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        
+    }];
+    
     _recognizedCommands =      @{
                                  ThisWillBeSaidOnce : @[
                                          @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
                                          @{ OneOfTheseWillBeSaidOnce : @[
-                                             @{ ThisWillBeSaidOnce : @[ @{ ThisWillBeSaidOnce : @[@"OPEN DOOR"] } ] },
+                                             @{ ThisWillBeSaidOnce : @[ @"OPEN DOOR"] },
                                              @{ ThisWillBeSaidOnce : @[
                                                         @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
                                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"FLOOR FOUR"] }
