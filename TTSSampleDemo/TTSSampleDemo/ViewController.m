@@ -53,6 +53,9 @@
     
     _requestOperationManager = [AFHTTPRequestOperationManager manager];
     
+    _fliteController = [[OEFliteController alloc] init];
+    _slt = [[Slt alloc] init];
+    
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
     
@@ -102,7 +105,7 @@
                                  ThisWillBeSaidOnce : @[ // Lights
                                          @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
                                          @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE"] },
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"ALL"] },
                                          @{ ThisCanBeSaidOnce : @[@"THANK YOU"] }
                                          ]
                                  };
@@ -171,7 +174,7 @@
     
     _recognizableText = [[UILabel alloc] initForAutoLayout];
     [_recognizableText setNumberOfLines:0];
-    [_recognizableText setText:@" 1) LIGHTS COMMANDS: \n 1.1) HELLO/HEY IRIS \n 1.2) TURN ON/OFF LIGHTS \n 1.3) FLOOR ONE/TWO/THREE"];
+    [_recognizableText setText:@" 1) LIGHTS COMMANDS: \n 1.1) HELLO/HEY IRIS \n 1.2) TURN ON/OFF LIGHTS \n 1.3) FLOOR ONE/TWO/THREE/FOUR/ALL"];
     [_recognizableText setTextAlignment:NSTextAlignmentLeft];
     [self.view addSubview:_recognizableText];
     
@@ -238,7 +241,7 @@
     
     [_requestOperationManager POST:postURL parameters:parameters success:^(AFHTTPRequestOperation *operation, id respondObject) {
         NSLog(@"success!");
-        
+        //[_fliteController say:event withVoice:_slt];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
@@ -271,6 +274,32 @@
     NSLog(@"The received hypothesis is %@ with a score of %@ and an ID of %@", hypothesis, recognitionScore, utteranceID);
     
     NSArray *commandWords = [hypothesis componentsSeparatedByString: @" "];
+    NSString *on_off = commandWords[3];
+    on_off = [on_off lowercaseString];
+    
+    NSString *floorNumberString = commandWords[commandWords.count-1];
+    NSInteger floorNumber = 0;
+    
+    NSString *event = nil;
+    
+    if ([floorNumberString isEqualToString:@"ONE"]) {
+        floorNumber = 1;
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
+    } else if ([floorNumberString isEqualToString:@"TWO"]){
+        floorNumber = 2;
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
+    } else if ([floorNumberString isEqualToString:@"THREE"]){
+        floorNumber = 3;
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
+    } else if ([floorNumberString isEqualToString:@"FOUR"]){
+        floorNumber = 4;
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
+    } else {
+        event = [NSString stringWithFormat:@"%@_%@",[floorNumberString lowercaseString],on_off];
+    }
+    
+    NSLog(@"%@",event);
+    [self sendRequest:event];
     
     [_recognizedText setText:hypothesis];
 }
