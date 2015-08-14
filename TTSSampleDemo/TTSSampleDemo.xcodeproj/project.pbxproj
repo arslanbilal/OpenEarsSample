@@ -16,6 +16,7 @@
 		7744110F1B7DF3C700DDAA4F /* AFURLRequestSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = 774411041B7DF3C700DDAA4F /* AFURLRequestSerialization.m */; };
 		774411101B7DF3C700DDAA4F /* AFURLResponseSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = 774411061B7DF3C700DDAA4F /* AFURLResponseSerialization.m */; };
 		774411111B7DF3C700DDAA4F /* AFURLSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 774411081B7DF3C700DDAA4F /* AFURLSessionManager.m */; };
+		774411151B7E150400DDAA4F /* NSString+HPHashAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 774411141B7E150400DDAA4F /* NSString+HPHashAdditions.m */; };
 		77A879281B79FDED00C85D3B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A879251B79FDED00C85D3B /* AppDelegate.m */; };
 		77A879291B79FDED00C85D3B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 77A879261B79FDED00C85D3B /* Images.xcassets */; };
 		77A8792A1B79FDED00C85D3B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 77A879271B79FDED00C85D3B /* main.m */; };
@@ -63,6 +64,8 @@
 		774411061B7DF3C700DDAA4F /* AFURLResponseSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFURLResponseSerialization.m; path = Dependencies/AFNetworking/AFURLResponseSerialization.m; sourceTree = "<group>"; };
 		774411071B7DF3C700DDAA4F /* AFURLSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFURLSessionManager.h; path = Dependencies/AFNetworking/AFURLSessionManager.h; sourceTree = "<group>"; };
 		774411081B7DF3C700DDAA4F /* AFURLSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFURLSessionManager.m; path = Dependencies/AFNetworking/AFURLSessionManager.m; sourceTree = "<group>"; };
+		774411131B7E150400DDAA4F /* NSString+HPHashAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+HPHashAdditions.h"; path = "Categories/NSString+HPHashAdditions.h"; sourceTree = "<group>"; };
+		774411141B7E150400DDAA4F /* NSString+HPHashAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+HPHashAdditions.m"; path = "Categories/NSString+HPHashAdditions.m"; sourceTree = "<group>"; };
 		77A879241B79FDED00C85D3B /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = "Supporting Files/AppDelegate.h"; sourceTree = "<group>"; };
 		77A879251B79FDED00C85D3B /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = "Supporting Files/AppDelegate.m"; sourceTree = "<group>"; };
 		77A879261B79FDED00C85D3B /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = "Supporting Files/Images.xcassets"; sourceTree = "<group>"; };
@@ -140,9 +143,19 @@
 			name = AFNetworking;
 			sourceTree = "<group>";
 		};
+		774411121B7E14E500DDAA4F /* Categories */ = {
+			isa = PBXGroup;
+			children = (
+				774411131B7E150400DDAA4F /* NSString+HPHashAdditions.h */,
+				774411141B7E150400DDAA4F /* NSString+HPHashAdditions.m */,
+			);
+			name = Categories;
+			sourceTree = "<group>";
+		};
 		77C820CA1B79EDAA006686C8 = {
 			isa = PBXGroup;
 			children = (
+				774411121B7E14E500DDAA4F /* Categories */,
 				77E2A25E1B7CB8EF004CC53B /* Dependencies */,
 				77C821001B79EFD9006686C8 /* Frameworks */,
 				77C820D51B79EDAA006686C8 /* TTSSampleDemo */,
@@ -348,6 +361,7 @@
 				774411111B7DF3C700DDAA4F /* AFURLSessionManager.m in Sources */,
 				77A879281B79FDED00C85D3B /* AppDelegate.m in Sources */,
 				77A8792A1B79FDED00C85D3B /* main.m in Sources */,
+				774411151B7E150400DDAA4F /* NSString+HPHashAdditions.m in Sources */,
 				7744110C1B7DF3C700DDAA4F /* AFNetworkReachabilityManager.m in Sources */,
 				77C820DF1B79EDAA006686C8 /* ViewController.m in Sources */,
 				7744110E1B7DF3C700DDAA4F /* AFURLConnectionOperation.m in Sources */,

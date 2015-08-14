@@ -15,6 +15,8 @@
 #import <OpenEars/OEAcousticModel.h>
 #import <OpenEars/OEEventsObserver.h>
 #import <Slt/Slt.h>
+#import <CommonCrypto/CommonDigest.h>
+#import "NSString+HPHashAdditions.h"
 
 
 #define kFileName @"language-model-files"
@@ -69,10 +71,11 @@
     
     /*
      @{
+     @{
      ThisWillBeSaidOnce : @[
      @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
      @{ OneOfTheseWillBeSaidOnce : @[
-     @{ ThisWillBeSaidOnce : @[ @{ ThisWillBeSaidOnce : @[@"OPEN DOOR"] } ] },
+     @{ ThisWillBeSaidOnce : @[ @"OPEN DOOR"] },
      @{ ThisWillBeSaidOnce : @[
      @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
      @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"FLOOR FOUR"] }
@@ -80,24 +83,29 @@
      ] }
      ] };
      */
+
     
-    [_requestOperationManager GET:@"http://example.com/resources.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        
-    }];
+    /*
+     app_id`: `135431`
+    `key`: `138289ba194ec1862b00`
+    `channel`: `homekit_channel`
+    `secret`: `dd5ffaacb91264be3264`
+
+     all_off
+     all_on
+
+     floor1_on
+     floor1_off
+     */
     
     _recognizedCommands =      @{
-                                 ThisWillBeSaidOnce : @[
+                                 ThisWillBeSaidOnce : @[ // Lights
                                          @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[
-                                             @{ ThisWillBeSaidOnce : @[ @"OPEN DOOR"] },
-                                             @{ ThisWillBeSaidOnce : @[
-                                                        @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-                                                        @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"FLOOR FOUR"] }
-                                                        ] }
-                                             ] }
-                                        ] };
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE"] },
+                                         @{ ThisCanBeSaidOnce : @[@"THANK YOU"] }
+                                         ]
+                                 };
     
     [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
      
@@ -163,7 +171,7 @@
     
     _recognizableText = [[UILabel alloc] initForAutoLayout];
     [_recognizableText setNumberOfLines:0];
-    [_recognizableText setText:@" 1) LIGHTS COMMANDS: \n 1.1) HELLO/HEY IRIS \n 1.2) TURN ON/OFF LIGHTS \n 1.3) FLOOR ONE/TWO/THREE\n\n 2) DOOR COMMANDS \n 2.1) HELLO/HEY IRIS \n 2.2) OPEN DOOR"];
+    [_recognizableText setText:@" 1) LIGHTS COMMANDS: \n 1.1) HELLO/HEY IRIS \n 1.2) TURN ON/OFF LIGHTS \n 1.3) FLOOR ONE/TWO/THREE"];
     [_recognizableText setTextAlignment:NSTextAlignmentLeft];
     [self.view addSubview:_recognizableText];
     
@@ -171,6 +179,69 @@
     [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
     [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
     [_recognizableText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_recognizedText withOffset:30.0];
+}
+
+- (NSString *)md5:(NSString*)_password {
+    const char *cStr = [_password UTF8String];
+    unsigned char result[16];
+    CC_MD5( cStr, strlen(cStr), result ); // This is the md5 call
+    return [NSString stringWithFormat:
+            @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            result[0], result[1], result[2], result[3],
+            result[4], result[5], result[6], result[7],
+            result[8], result[9], result[10], result[11],
+            result[12], result[13], result[14], result[15]
+            ];
+}
+
+- (void)sendRequest: (NSString *)event {
+    NSString *app_id = [NSString stringWithFormat:@"%d", 135431];
+    
+    NSString *timeInterval = [NSString stringWithFormat:@"%.0f", [[NSDate date] timeIntervalSince1970]];
+    
+    NSDictionary *parameters = @{
+                                 @"name": event,
+                                 @"data": @"{\"name\": \"John\",\"message\": \"Hello\"}",
+                                 @"channel": @"homekit_channel"
+                                 };
+    
+    NSData *parametersData = [NSJSONSerialization dataWithJSONObject:parameters
+                                                             options:0
+                                                               error:nil];
+    
+    NSString *parametersJSON = [[NSString alloc] initWithData:parametersData encoding:NSUTF8StringEncoding];
+    
+    
+    NSString *parametersMD5 = [self md5:parametersJSON];
+    
+    NSDictionary *authParameters = @{
+                                     @"auth_key": @"138289ba194ec1862b00",
+                                     @"auth_timestamp": timeInterval,
+                                     @"auth_version": @"1.0",
+                                     @"body_md5": parametersMD5
+                                     };
+    
+    NSString *HMAC_SHA_256 = [NSString stringWithFormat:@"POST\n/apps/%@/events\nauth_key=%@&auth_timestamp=%@&auth_version=1.0&body_md5=%@", app_id, authParameters[@"auth_key"], authParameters[@"auth_timestamp"], parametersMD5];
+    
+    NSString *secret = @"dd5ffaacb91264be3264";
+    
+    NSString *result = [NSString hmac:HMAC_SHA_256 withKey:secret];
+    
+    NSString *postURL = [@"http://api.pusherapp.com" stringByAppendingString:[NSString stringWithFormat:@"/apps/%@/events?auth_key=%@&auth_timestamp=%@&auth_version=1.0&body_md5=%@&auth_signature=%@", app_id, authParameters[@"auth_key"], authParameters[@"auth_timestamp"], parametersMD5, result]];
+    
+    
+    _requestOperationManager.requestSerializer = [AFJSONRequestSerializer serializer];
+    [_requestOperationManager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    
+    _requestOperationManager.responseSerializer = [AFJSONResponseSerializer serializer];
+    [_requestOperationManager.responseSerializer setAcceptableContentTypes:[NSSet setWithObject:@"text/html"]];
+    
+    [_requestOperationManager POST:postURL parameters:parameters success:^(AFHTTPRequestOperation *operation, id respondObject) {
+        NSLog(@"success!");
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+    }];
 }
 
 #pragma mark - Button Actions
@@ -198,6 +269,9 @@
 
 - (void)pocketsphinxDidReceiveHypothesis:(NSString *)hypothesis recognitionScore:(NSString *)recognitionScore utteranceID:(NSString *)utteranceID {
     NSLog(@"The received hypothesis is %@ with a score of %@ and an ID of %@", hypothesis, recognitionScore, utteranceID);
+    
+    NSArray *commandWords = [hypothesis componentsSeparatedByString: @" "];
+    
     [_recognizedText setText:hypothesis];
 }
 
