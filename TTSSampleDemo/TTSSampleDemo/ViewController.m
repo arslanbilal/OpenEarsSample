@@ -45,63 +45,52 @@
     [super viewDidLoad];
     [self.view setBackgroundColor:[UIColor whiteColor]];
     
+    [self createUI];
     
-    _micControlButton = [[UIButton alloc] initForAutoLayout];
-    [_micControlButton setTitle:@"Listen" forState:UIControlStateNormal];
-    [_micControlButton setBackgroundColor:[UIColor redColor]];
-    [[_micControlButton layer] setCornerRadius:7.5];
-    [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:_micControlButton];
-    
-    [_micControlButton autoSetDimension:ALDimensionHeight toSize:50];
-    [_micControlButton autoPinEdgesToSuperviewEdgesWithInsets:UIEdgeInsetsMake(30, 50, 50, 50) excludingEdge:ALEdgeBottom];
-    
-    
-    _recognizedText = [[UILabel alloc] initForAutoLayout];
-    [_recognizedText setNumberOfLines:0];
-    [_recognizedText setText:@"Your Speech will come here when the IRIS understand the correct commands.."];
-    [_recognizedText setTextAlignment:NSTextAlignmentCenter];
-    [self.view addSubview:_recognizedText];
-    
-    CGFloat minumunHeight = 25.0;
-    [_recognizedText autoSetDimension:ALDimensionHeight toSize:minumunHeight relation:NSLayoutRelationGreaterThanOrEqual];
-    [_recognizedText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
-    [_recognizedText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
-    [_recognizedText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_micControlButton withOffset:30.0];
-    
-    
-    _recognizableText = [[UILabel alloc] initForAutoLayout];
-    [_recognizableText setNumberOfLines:0];
-    [_recognizableText setText:@" 0) COMMANDS: \n 1) HELLO/HEY IRIS \n 2) TURN ON/OFF LIGHTS \n 3) FLOOR ONE/TWO/THREE \n 4) (THANK YOU)"];
-    [_recognizableText setTextAlignment:NSTextAlignmentLeft];
-    [self.view addSubview:_recognizableText];
-    
-    [_recognizableText autoSetDimension:ALDimensionHeight toSize:minumunHeight relation:NSLayoutRelationGreaterThanOrEqual];
-    [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
-    [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
-    [_recognizableText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_recognizedText withOffset:30.0];
-    
-    //[_scrollView setContentSize:_scrollContentView.frame.size];
-    
-    
-    // OEEventsObserver is the class which keeps you continuously updated about the status of your listening session, among other things, via delegate callbacks
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
     
     _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
-
-    // Dictionary of commands want to recognize by App
+    
+    /*
+     @{
+     ThisWillBeSaidOnce : @[ // Lights
+     @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
+     @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
+     @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE"] },
+     @{ ThisCanBeSaidOnce : @[@"THANK YOU"] }
+     ]
+     };
+     */
+    
+    /*
+     @{
+     ThisWillBeSaidOnce : @[
+     @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
+     @{ OneOfTheseWillBeSaidOnce : @[
+     @{ ThisWillBeSaidOnce : @[ @{ ThisWillBeSaidOnce : @[@"OPEN DOOR"] } ] },
+     @{ ThisWillBeSaidOnce : @[
+     @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
+     @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"FLOOR FOUR"] }
+     ] }
+     ] }
+     ] };
+     */
+    
     _recognizedCommands =      @{
                                  ThisWillBeSaidOnce : @[
                                          @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE"] },
-                                         @{ ThisCanBeSaidOnce : @[@"THANK YOU"]}
-                                         ]
-                                 };
+                                         @{ OneOfTheseWillBeSaidOnce : @[
+                                             @{ ThisWillBeSaidOnce : @[ @{ ThisWillBeSaidOnce : @[@"OPEN DOOR"] } ] },
+                                             @{ ThisWillBeSaidOnce : @[
+                                                        @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
+                                                        @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"FLOOR FOUR"] }
+                                                        ] }
+                                             ] }
+                                        ] };
     
     [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
-        
+     
         if (granted == true) {
             NSError *error = [_languageModelGenerator generateGrammarFromDictionary:_recognizedCommands
                                                                      withFilesNamed:kFileName
@@ -135,6 +124,43 @@
         }
         
     }];
+}
+
+- (void)createUI {
+    _micControlButton = [[UIButton alloc] initForAutoLayout];
+    [_micControlButton setTitle:@"Listen" forState:UIControlStateNormal];
+    [_micControlButton setBackgroundColor:[UIColor redColor]];
+    [[_micControlButton layer] setCornerRadius:7.5];
+    [_micControlButton addTarget:self action:@selector(didTapMicButton:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_micControlButton];
+    
+    [_micControlButton autoSetDimension:ALDimensionHeight toSize:50];
+    [_micControlButton autoPinEdgesToSuperviewEdgesWithInsets:UIEdgeInsetsMake(30, 50, 50, 50) excludingEdge:ALEdgeBottom];
+    
+    
+    _recognizedText = [[UILabel alloc] initForAutoLayout];
+    [_recognizedText setNumberOfLines:0];
+    [_recognizedText setText:@"Your Speech will come here when the IRIS understand the correct commands.."];
+    [_recognizedText setTextAlignment:NSTextAlignmentCenter];
+    [self.view addSubview:_recognizedText];
+    
+    CGFloat minumunHeight = 25.0;
+    [_recognizedText autoSetDimension:ALDimensionHeight toSize:minumunHeight relation:NSLayoutRelationGreaterThanOrEqual];
+    [_recognizedText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
+    [_recognizedText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
+    [_recognizedText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_micControlButton withOffset:30.0];
+    
+    
+    _recognizableText = [[UILabel alloc] initForAutoLayout];
+    [_recognizableText setNumberOfLines:0];
+    [_recognizableText setText:@" 1) LIGHTS COMMANDS: \n 1.1) HELLO/HEY IRIS \n 1.2) TURN ON/OFF LIGHTS \n 1.3) FLOOR ONE/TWO/THREE\n\n 2) DOOR COMMANDS \n 2.1) HELLO/HEY IRIS \n 2.2) OPEN DOOR"];
+    [_recognizableText setTextAlignment:NSTextAlignmentLeft];
+    [self.view addSubview:_recognizableText];
+    
+    [_recognizableText autoSetDimension:ALDimensionHeight toSize:minumunHeight relation:NSLayoutRelationGreaterThanOrEqual];
+    [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
+    [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
+    [_recognizableText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_recognizedText withOffset:30.0];
 }
 
 #pragma mark - Button Actions
