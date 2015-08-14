@@ -108,8 +108,7 @@
                                  ThisWillBeSaidOnce : @[ // Lights
                                          @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
                                          @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"ALL"] },
-                                         @{ ThisCanBeSaidOnce : @[@"THANK YOU"] }
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"ALL"] }
                                          ]
                                  };
     
@@ -246,13 +245,13 @@
         NSLog(@"success!");
         if ([_on_off isEqualToString:@"on"]) {
             if ([_floorNumberString isEqualToString:@"ALL"]) {
-                [_fliteController say:[NSString stringWithFormat:@"Turning on light %@", _floorNumberString] withVoice:_slt];
+                [_fliteController say:[NSString stringWithFormat:@"Turning on %@ lights", _floorNumberString] withVoice:_slt];
             } else {
                 [_fliteController say:[NSString stringWithFormat:@"Turning on light floor %@", _floorNumberString] withVoice:_slt];
             }
         } else {
             if ([_floorNumberString isEqualToString:@"ALL"]) {
-                [_fliteController say:[NSString stringWithFormat:@"Turning off light %@", _floorNumberString] withVoice:_slt];
+                [_fliteController say:[NSString stringWithFormat:@"Turning off %@ lights", _floorNumberString] withVoice:_slt];
             } else {
                 [_fliteController say:[NSString stringWithFormat:@"Turning off light floor %@", _floorNumberString] withVoice:_slt];
             }
@@ -312,8 +311,6 @@
         event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
     } else {
         event = [NSString stringWithFormat:@"%@_%@",[_floorNumberString lowercaseString],_on_off];
-    }
-    
     }
     [self sendRequest:event];
     
