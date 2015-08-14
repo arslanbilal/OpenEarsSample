@@ -34,6 +34,8 @@
 @property (nonatomic, strong) NSDictionary *recognizedCommands;
 @property (nonatomic, strong) NSString *languageModelPath;
 @property (nonatomic, strong) NSString *dictionaryPath;
+@property (nonatomic, strong) NSString *floorNumberString;
+@property (nonatomic, strong) NSString *on_off;
 
 @property (nonatomic, strong) UIButton *micControlButton;
 @property (nonatomic, strong) UILabel *recognizedText;
@@ -55,6 +57,7 @@
     
     _fliteController = [[OEFliteController alloc] init];
     _slt = [[Slt alloc] init];
+    [_fliteController setDuration_stretch:1.3];
     
     _openEarsEventsObserver = [[OEEventsObserver alloc] init];
     [_openEarsEventsObserver setDelegate:self];
@@ -241,7 +244,20 @@
     
     [_requestOperationManager POST:postURL parameters:parameters success:^(AFHTTPRequestOperation *operation, id respondObject) {
         NSLog(@"success!");
-        //[_fliteController say:event withVoice:_slt];
+        if ([_on_off isEqualToString:@"on"]) {
+            if ([_floorNumberString isEqualToString:@"ALL"]) {
+                [_fliteController say:[NSString stringWithFormat:@"Turning on light %@", _floorNumberString] withVoice:_slt];
+            } else {
+                [_fliteController say:[NSString stringWithFormat:@"Turning on light floor %@", _floorNumberString] withVoice:_slt];
+            }
+        } else {
+            if ([_floorNumberString isEqualToString:@"ALL"]) {
+                [_fliteController say:[NSString stringWithFormat:@"Turning off light %@", _floorNumberString] withVoice:_slt];
+            } else {
+                [_fliteController say:[NSString stringWithFormat:@"Turning off light floor %@", _floorNumberString] withVoice:_slt];
+            }
+        }
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error: %@", error);
     }];
@@ -274,31 +290,31 @@
     NSLog(@"The received hypothesis is %@ with a score of %@ and an ID of %@", hypothesis, recognitionScore, utteranceID);
     
     NSArray *commandWords = [hypothesis componentsSeparatedByString: @" "];
-    NSString *on_off = commandWords[3];
-    on_off = [on_off lowercaseString];
+    _on_off = commandWords[3];
+    _on_off = [_on_off lowercaseString];
     
-    NSString *floorNumberString = commandWords[commandWords.count-1];
+    _floorNumberString = commandWords[commandWords.count-1];
     NSInteger floorNumber = 0;
     
     NSString *event = nil;
     
-    if ([floorNumberString isEqualToString:@"ONE"]) {
+    if ([_floorNumberString isEqualToString:@"ONE"]) {
         floorNumber = 1;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
-    } else if ([floorNumberString isEqualToString:@"TWO"]){
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
+    } else if ([_floorNumberString isEqualToString:@"TWO"]){
         floorNumber = 2;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
-    } else if ([floorNumberString isEqualToString:@"THREE"]){
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
+    } else if ([_floorNumberString isEqualToString:@"THREE"]){
         floorNumber = 3;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
-    } else if ([floorNumberString isEqualToString:@"FOUR"]){
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
+    } else if ([_floorNumberString isEqualToString:@"FOUR"]){
         floorNumber = 4;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,on_off];
+        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
     } else {
-        event = [NSString stringWithFormat:@"%@_%@",[floorNumberString lowercaseString],on_off];
+        event = [NSString stringWithFormat:@"%@_%@",[_floorNumberString lowercaseString],_on_off];
     }
     
-    NSLog(@"%@",event);
+    }
     [self sendRequest:event];
     
     [_recognizedText setText:hypothesis];
