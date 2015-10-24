@@ -7,16 +7,15 @@
 //
 
 #import "ViewController.h"
+
 #import "PureLayout.h"
-#import "AFHTTPRequestOperationManager.h"
+
 #import <OpenEars/OELanguageModelGenerator.h>
 #import <OpenEars/OEPocketsphinxController.h>
 #import <OpenEars/OEFliteController.h>
 #import <OpenEars/OEAcousticModel.h>
 #import <OpenEars/OEEventsObserver.h>
 #import <Slt/Slt.h>
-#import <CommonCrypto/CommonDigest.h>
-#import "NSString+HPHashAdditions.h"
 
 
 #define kFileName @"language-model-files"
@@ -29,13 +28,10 @@
 @property (nonatomic, strong) OEFliteController *fliteController;
 @property (nonatomic, strong) Slt *slt;
 @property (nonatomic, strong) OEEventsObserver *openEarsEventsObserver;
-@property (nonatomic, strong) AFHTTPRequestOperationManager *requestOperationManager;
 
 @property (nonatomic, strong) NSDictionary *recognizedCommands;
 @property (nonatomic, strong) NSString *languageModelPath;
 @property (nonatomic, strong) NSString *dictionaryPath;
-@property (nonatomic, strong) NSString *floorNumberString;
-@property (nonatomic, strong) NSString *on_off;
 
 @property (nonatomic, strong) UIButton *micControlButton;
 @property (nonatomic, strong) UILabel *recognizedText;
@@ -53,8 +49,6 @@
     
     [self createUI];
     
-    _requestOperationManager = [AFHTTPRequestOperationManager manager];
-    
     _fliteController = [[OEFliteController alloc] init];
     _slt = [[Slt alloc] init];
     [_fliteController setDuration_stretch:1.3];
@@ -64,51 +58,12 @@
     
     _languageModelGenerator = [[OELanguageModelGenerator alloc] init];
     
-    /*
-     @{
-     ThisWillBeSaidOnce : @[ // Lights
-     @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
-     @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-     @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE"] },
-     @{ ThisCanBeSaidOnce : @[@"THANK YOU"] }
-     ]
-     };
-     */
-    
-    /*
-     @{
-     @{
-     ThisWillBeSaidOnce : @[
-     @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
-     @{ OneOfTheseWillBeSaidOnce : @[
-     @{ ThisWillBeSaidOnce : @[ @"OPEN DOOR"] },
-     @{ ThisWillBeSaidOnce : @[
-     @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-     @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"FLOOR FOUR"] }
-     ] }
-     ] }
-     ] };
-     */
-
-    
-    /*
-     app_id`: `135431`
-    `key`: `138289ba194ec1862b00`
-    `channel`: `homekit_channel`
-    `secret`: `dd5ffaacb91264be3264`
-
-     all_off
-     all_on
-
-     floor1_on
-     floor1_off
-     */
-    
     _recognizedCommands =      @{
                                  ThisWillBeSaidOnce : @[ // Lights
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"HELLO IRIS", @"HEY IRIS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS", @"TURN OFF LIGHTS"] },
-                                         @{ OneOfTheseWillBeSaidOnce : @[@"FLOOR ONE", @"FLOOR TWO", @"FLOOR THREE", @"ALL"] }
+                                         @{ OneOfTheseWillBeSaidOnce : @[ @"HEY IRIS"] },
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"TURN ON LIGHTS AT", @"TURN OFF LIGHTS AT"] },
+                                         @{ OneOfTheseWillBeSaidOnce : @[@"FIRST", @"SECOND", @"THIRD"] },
+                                         @{ ThisWillBeSaidOnce : @[@"FLOOR"] }
                                          ]
                                  };
     
@@ -176,7 +131,7 @@
     
     _recognizableText = [[UILabel alloc] initForAutoLayout];
     [_recognizableText setNumberOfLines:0];
-    [_recognizableText setText:@" 1) LIGHTS COMMANDS: \n 1.1) HELLO/HEY IRIS \n 1.2) TURN ON/OFF LIGHTS \n 1.3) FLOOR ONE/TWO/THREE/FOUR/ALL"];
+    [_recognizableText setText:@" 1) HEY IRIS \n 2) TURN ON/OFF LIGHTS AT \n 3) FIRST/SECOND/THIRD FLOOR"];
     [_recognizableText setTextAlignment:NSTextAlignmentLeft];
     [self.view addSubview:_recognizableText];
     
@@ -184,82 +139,6 @@
     [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:30.0];
     [_recognizableText autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:30.0];
     [_recognizableText autoPinEdge:ALEdgeTop toEdge:ALEdgeBottom ofView:_recognizedText withOffset:30.0];
-}
-
-- (NSString *)md5:(NSString*)_password {
-    const char *cStr = [_password UTF8String];
-    unsigned char result[16];
-    CC_MD5( cStr, strlen(cStr), result ); // This is the md5 call
-    return [NSString stringWithFormat:
-            @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-            result[0], result[1], result[2], result[3],
-            result[4], result[5], result[6], result[7],
-            result[8], result[9], result[10], result[11],
-            result[12], result[13], result[14], result[15]
-            ];
-}
-
-- (void)sendRequest: (NSString *)event {
-    NSString *app_id = [NSString stringWithFormat:@"%d", 135431];
-    
-    NSString *timeInterval = [NSString stringWithFormat:@"%.0f", [[NSDate date] timeIntervalSince1970]];
-    
-    NSDictionary *parameters = @{
-                                 @"name": event,
-                                 @"data": @"{\"name\": \"John\",\"message\": \"Hello\"}",
-                                 @"channel": @"homekit_channel"
-                                 };
-    
-    NSData *parametersData = [NSJSONSerialization dataWithJSONObject:parameters
-                                                             options:0
-                                                               error:nil];
-    
-    NSString *parametersJSON = [[NSString alloc] initWithData:parametersData encoding:NSUTF8StringEncoding];
-    
-    
-    NSString *parametersMD5 = [self md5:parametersJSON];
-    
-    NSDictionary *authParameters = @{
-                                     @"auth_key": @"138289ba194ec1862b00",
-                                     @"auth_timestamp": timeInterval,
-                                     @"auth_version": @"1.0",
-                                     @"body_md5": parametersMD5
-                                     };
-    
-    NSString *HMAC_SHA_256 = [NSString stringWithFormat:@"POST\n/apps/%@/events\nauth_key=%@&auth_timestamp=%@&auth_version=1.0&body_md5=%@", app_id, authParameters[@"auth_key"], authParameters[@"auth_timestamp"], parametersMD5];
-    
-    NSString *secret = @"dd5ffaacb91264be3264";
-    
-    NSString *result = [NSString hmac:HMAC_SHA_256 withKey:secret];
-    
-    NSString *postURL = [@"http://api.pusherapp.com" stringByAppendingString:[NSString stringWithFormat:@"/apps/%@/events?auth_key=%@&auth_timestamp=%@&auth_version=1.0&body_md5=%@&auth_signature=%@", app_id, authParameters[@"auth_key"], authParameters[@"auth_timestamp"], parametersMD5, result]];
-    
-    
-    _requestOperationManager.requestSerializer = [AFJSONRequestSerializer serializer];
-    [_requestOperationManager.requestSerializer setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    
-    _requestOperationManager.responseSerializer = [AFJSONResponseSerializer serializer];
-    [_requestOperationManager.responseSerializer setAcceptableContentTypes:[NSSet setWithObject:@"text/html"]];
-    
-    [_requestOperationManager POST:postURL parameters:parameters success:^(AFHTTPRequestOperation *operation, id respondObject) {
-        NSLog(@"success!");
-        if ([_on_off isEqualToString:@"on"]) {
-            if ([_floorNumberString isEqualToString:@"ALL"]) {
-                [_fliteController say:[NSString stringWithFormat:@"Turning on %@ lights", _floorNumberString] withVoice:_slt];
-            } else {
-                [_fliteController say:[NSString stringWithFormat:@"Turning on light floor %@", _floorNumberString] withVoice:_slt];
-            }
-        } else {
-            if ([_floorNumberString isEqualToString:@"ALL"]) {
-                [_fliteController say:[NSString stringWithFormat:@"Turning off %@ lights", _floorNumberString] withVoice:_slt];
-            } else {
-                [_fliteController say:[NSString stringWithFormat:@"Turning off light floor %@", _floorNumberString] withVoice:_slt];
-            }
-        }
-        
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error: %@", error);
-    }];
 }
 
 #pragma mark - Button Actions
@@ -287,32 +166,6 @@
 
 - (void)pocketsphinxDidReceiveHypothesis:(NSString *)hypothesis recognitionScore:(NSString *)recognitionScore utteranceID:(NSString *)utteranceID {
     NSLog(@"The received hypothesis is %@ with a score of %@ and an ID of %@", hypothesis, recognitionScore, utteranceID);
-    
-    NSArray *commandWords = [hypothesis componentsSeparatedByString: @" "];
-    _on_off = commandWords[3];
-    _on_off = [_on_off lowercaseString];
-    
-    _floorNumberString = commandWords[commandWords.count-1];
-    NSInteger floorNumber = 0;
-    
-    NSString *event = nil;
-    
-    if ([_floorNumberString isEqualToString:@"ONE"]) {
-        floorNumber = 1;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
-    } else if ([_floorNumberString isEqualToString:@"TWO"]){
-        floorNumber = 2;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
-    } else if ([_floorNumberString isEqualToString:@"THREE"]){
-        floorNumber = 3;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
-    } else if ([_floorNumberString isEqualToString:@"FOUR"]){
-        floorNumber = 4;
-        event = [NSString stringWithFormat:@"floor%ld_%@",(long)floorNumber,_on_off];
-    } else {
-        event = [NSString stringWithFormat:@"%@_%@",[_floorNumberString lowercaseString],_on_off];
-    }
-    [self sendRequest:event];
     
     [_recognizedText setText:hypothesis];
 }
